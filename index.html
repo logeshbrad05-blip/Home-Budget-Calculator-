@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Budget Calculator</title>
+    <!-- PDF Export Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body{font-family:Arial,sans-serif;margin:0;padding:15px;background:#f5f5f5;color:#333;}
+        .container{max-width:420px;margin:0 auto;background:white;border-radius:12px;padding:20px;box-shadow:0 6px 20px rgba(0,0,0,0.1);}
+        h1,h3{text-align:center;color:#2c3e50;margin:0 0 15px;font-size:1.4em;}
+        h3{font-size:1.1em;}
+        .input-group{margin:6px 0;}
+        label{display:flex;align-items:center;font-size:0.9em;color:#555;margin-bottom:3px;font-weight:500;}
+        input[type="number"],input[type="date"]{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:16px;box-sizing:border-box;}
+        input:focus{outline:none;border-color:#3498db;box-shadow:0 0 5px rgba(52,152,219,0.3);}
+        .icon{font-size:1.3em;margin-right:8px;}
+        .totals{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0;font-weight:bold;font-size:1.1em;}
+        .total-item{padding:12px;background:#ecf0f1;border-radius:8px;text-align:center;}
+        .positive{color:#27ae60;border-left:4px solid #27ae60;}
+        .negative{color:#e74c3c;border-left:4px solid #e74c3c;}
+        .allocations{background:#f8f9fa;padding:15px;border-radius:10px;margin:15px 0;}
+        .allocation-row{display:grid;grid-template-columns:2fr 1fr;gap:8px;align-items:center;margin:6px 0;}
+        button{display:inline-block;padding:8px 12px;background:#3498db;color:white;border:none;border-radius:6px;font-size:14px;cursor:pointer;margin:2px;font-weight:500;}
+        button:hover{background:#2980b9;}
+        .pdf-btn{background:#27ae60;font-size:16px;padding:12px 20px;}
+        .pdf-btn:hover{background:#229954;}
+        .add-row{display:flex;gap:5px;align-items:center;font-size:0.85em;}
+        .main-value{font-weight:bold;color:#2c3e50;}
+        @media (max-width:480px){.totals{grid-template-columns:1fr;}.allocation-row{grid-template-columns:1fr;}}
+        .section{margin-bottom:20px;}
+        .print-friendly *{box-sizing:border-box;}
+    </style>
+</head>
+<body>
+    <div class="container" id="budgetContent">
+        <h1>🏠 Home Budget Calculator</h1>
+        
+        <!-- Date & Deposits -->
+        <div class="section">
+            <div class="input-group">
+                <label><span class="icon">📅</span>Date</label>
+                <input type="date" id="date" onchange="saveEntry()">
+            </div>
+            <div class="input-group">
+                <label><span class="icon">💰</span>Deposits ₹</label>
+                <input type="number" id="deposits" min="0" step="0.01" value="0" oninput="calculate()">
+            </div>
+        </div>
+
+        <!-- Expenses - Consistent ₹ Labels -->
+        <div class="section">
+            <h3>📊 Daily Expenses</h3>
+            <div class="input-group">
+                <label><span class="icon">🍚</span>Rice ₹</label>
+                <input type="number" id="rice" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="riceAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('rice')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">⚡</span>Electricity ₹</label>
+                <input type="number" id="electricity" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="electricityAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('electricity')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🍼</span>Aavin Milk ₹</label>
+                <input type="number" id="milk" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="milkAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('milk')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🔴</span>Indane Cylinder ₹</label>
+                <input type="number" id="cylinder" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="cylinderAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('cylinder')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🍗</span>Non-Veg ₹</label>
+                <input type="number" id="nonveg" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="nonvegAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('nonveg')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🥚</span>Eggs ₹</label>
+                <input type="number" id="eggs" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="eggsAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('eggs')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🥬</span>Veggies ₹</label>
+                <input type="number" id="veggies" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="veggiesAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('veggies')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🛒</span>Grocery Canteen ₹</label>
+                <input type="number" id="canteen" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="canteenAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('canteen')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label>Paneer ₹</label>
+                <input type="number" id="paneer" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="paneerAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('paneer')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🥥</span>Coconut#</label>
+                <input type="number" id="coconut" min="0">
+            </div>
+            <div class="input-group">
+                <label><span class="icon">✨</span>Extras ₹</label>
+                <input type="number" id="extras" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="extrasAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('extras')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🍿</span>Snacks ₹</label>
+                <input type="number" id="snacks" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="snacksAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('snacks')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🏪</span>Ration Shop ₹</label>
+                <input type="number" id="ration" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="rationAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('ration')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🛒</span>Provision ₹</label>
+                <input type="number" id="provision" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="provisionAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('provision')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🍎</span>Fruits ₹</label>
+                <input type="number" id="fruits" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="fruitsAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('fruits')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🧴</span>Cooking Oil ₹</label>
+                <input type="number" id="oil" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="oilAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('oil')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label>Curd ₹</label>
+                <input type="number" id="curd" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="curdAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('curd')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🌸</span>Flowers ₹</label>
+                <input type="number" id="flowers" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="flowersAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('flowers')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🏥</span>Medical ₹</label>
+                <input type="number" id="medical" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="medicalAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('medical')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🎁</span>Miscellaneous ₹</label>
+                <input type="number" id="misc" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="miscAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('misc')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">🏠</span>Rent ₹</label>
+                <input type="number" id="rent" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="rentAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('rent')">➕ Add</button></div>
+            </div>
+            <div class="input-group">
+                <label><span class="icon">📡</span>Broadband ₹</label>
+                <input type="number" id="broadband" class="main-value" readonly>
+                <div class="add-row"><input type="number" id="broadbandAdd" min="0" step="0.01" placeholder="0"><button onclick="addTo('broadband')">➕ Add</button></div>
+            </div>
+        </div>
+
+        <!-- Main Totals -->
+        <div class="totals">
+            <div class="total-item">💸 Expenses<br><span id="expenses">₹0</span></div>
+            <div class="total-item positive">⚖️ Balance<br><span id="balance">₹0</span></div>
+        </div>
+
+        <!-- Allocations -->
+        <div class="allocations">
+            <h3>👥 Allocations</h3>
+            <div class="allocation-row"><label><span class="icon">👩</span>Mom ₹</label><input type="number" id="mom" min="0" step="0.01" oninput="calculate()"></div>
+            <div class="allocation-row"><label><span class="icon">👩</span>Sabi ₹</label><input type="number" id="sabi" min="0" step="0.01" oninput="calculate()"></div>
+            <div class="allocation-row"><label><span class="icon">👨</span>Loga ₹</label><input type="number" id="loga" min="0" step="0.01" oninput="calculate()"></div>
+            <div class="allocation-row"><label><span class="icon">🏘️</span>Home ₹</label><input type="number" id="home" min="0" step="0.01" oninput="calculate()"></div>
+            <div style="text-align:center;font-weight:bold;">📊 Total: <span id="totalAllocated">₹0</span></div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="text-align:center;margin-top:20px;">
+        <button onclick="resetAll()" style="background:#e74c3c;">🔄 Reset All</button>
+        <button onclick="exportJSON()">💾 JSON Data</button>
+        <button onclick="exportPDF()" class="pdf-btn">📄 Export PDF</button>
+    </div>
+
+    <script>
+        let entries = JSON.parse(localStorage.getItem('budgetEntries')) || [];
+
+        function getAllExpenses() {
+            const expenseIds = ['rice','electricity','milk','cylinder','nonveg','eggs','veggies','canteen','paneer','extras','snacks','ration','provision','fruits','oil','curd','flowers','medical','misc','rent','broadband'];
+            let total = 0;
+            expenseIds.forEach(id => {
+                total += parseFloat(document.getElementById(id)?.value) || 0;
+            });
+            return total;
+        }
+
+        function addTo(item) {
+            const mainField = document.getElementById(item);
+            const addField = document.getElementById(item + 'Add');
+            const addValue = parseFloat(addField.value) || 0;
+            const current = parseFloat(mainField.value) || 0;
+            mainField.value = (current + addValue).toFixed(2);
+            addField.value = '';
+            calculate();
+        }
+
+        function calculate() {
+            const expenses = getAllExpenses();
+            const deposits = parseFloat(document.getElementById('deposits').value) || 0;
+            const balance = deposits - expenses;
+            
+            const mom = parseFloat(document.getElementById('mom').value) || 0;
+            const sabi = parseFloat(document.getElementById('sabi').value) || 0;
+            const loga = parseFloat(document.getElementById('loga').value) || 0;
+            const home = parseFloat(document.getElementById('home').value) || 0;
+            const totalAllocated = mom + sabi + loga + home;
+
+            document.getElementById('expenses').textContent = '₹' + expenses.toLocaleString();
+            document.getElementById('balance').textContent = '₹' + balance.toLocaleString();
+            document.getElementById('balance').parentElement.className = balance >= 0 ? 'total-item positive' : 'total-item negative';
+            document.getElementById('totalAllocated').textContent = '₹' + totalAllocated.toLocaleString();
+        }
+
+        function saveEntry() {
+            const date = document.getElementById('date').value;
+            if (!date) return;
+            const entry = {
+                date: date,
+                expenses: getAllExpenses(),
+                deposits: parseFloat(document.getElementById('deposits').value) || 0,
+                coconut: parseInt(document.getElementById('coconut').value) || 0
+            };
+            entries = entries.filter(e => e.date !== date);
+            entries.push(entry);
+            localStorage.setItem('budgetEntries', JSON.stringify(entries));
+        }
+
+        function exportPDF() {
+            const element = document.getElementById('budgetContent');
+            const opt = {
+                margin: 0.5,
+                filename: `Home-Budget-${new Date().toISOString().split('T')[0]}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function exportJSON() {
+            const dataStr = JSON.stringify(entries, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `budget-data-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+
+        function resetAll() {
+            document.querySelectorAll('input[type="number"], input[type="date"]').forEach(input => input.value = '');
+            calculate();
+        }
+
+        window.onload = () => {
+            calculate();
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        };
+    </script>
+</body>
+</html>
