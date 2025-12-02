@@ -318,7 +318,44 @@
           <input type="number" id="broadband" oninput="calculate()" placeholder="0" min="0" step="0.01" />
           <div class="add-row"><input id="broadbandAdd" type="number" min="0" step="0.01" placeholder="0" /><button onclick="addTo('broadband')">➕ Add</button></div>
         </div>
+        
+<div id="addExpenseContainer" style="margin-top:10px; text-align:center; width:100%;">
+          <button class="ghost" onclick="addNewExpenseField()" style="width:100%; border: 2px dashed rgba(59,130,246,0.25); justify-content: center;">
+            ➕ Add New Expense Field
+          </button>
+        </div>
 
+        <script>
+          function addNewExpenseField() {
+            // 1. Get container and button location
+            var list = document.getElementById('expensesList');
+            var btnContainer = document.getElementById('addExpenseContainer');
+            
+            // 2. Generate unique ID based on timestamp to prevent conflicts
+            var uniqueId = 'custom_' + Date.now();
+
+            // 3. Create the new row div
+            var div = document.createElement('div');
+            div.className = 'row';
+            
+            // 4. Set inner HTML matching existing structure
+            div.innerHTML = `
+              <label>
+                <span class="icon">📝</span>
+                <span class="editable-label" ondblclick="makeEditable(this)" onblur="makeReadOnly(this)" contenteditable="false">New Expense ₹</span>
+              </label>
+              <input type="number" id="${uniqueId}" oninput="calculate()" placeholder="0" min="0" step="0.01" />
+              <div class="add-row">
+                <input id="${uniqueId}Add" type="number" min="0" step="0.01" placeholder="0" />
+                <button onclick="addTo('${uniqueId}')">➕ Add</button>
+              </div>
+            `;
+
+            // 5. Insert the new row before the "Add" button
+            list.insertBefore(div, btnContainer);
+          }
+        </script>
+        
       </div> <!-- end expenses-list -->
     </div> <!-- end expenses section -->
 
